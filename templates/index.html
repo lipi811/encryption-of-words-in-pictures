@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Steganography</title>
+    <style>
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input[type="submit"] {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Steganography</h1>
+
+    {% if request.args.get('message') == 'encoded' %}
+        <h2>Message encoded successfully!</h2>
+    {% endif %}
+
+    <h2>Encode Message</h2>
+    <form id="encodeForm" action="/encode" method="post" enctype="multipart/form-data">
+        <label for="inputImage">Select Input Image:</label>
+        <input type="file" id="inputImage" name="inputImage" required><br><br>
+        <label for="message">Enter Secret Message:</label>
+        <input type="text" id="message" name="message" required value="{{ request.form.message }}" placeholder="enter the message"><br><br>
+        <label for="password">Enter Password:</label>
+        <input type="password" id="password" placeholder="enter the password" name="password" required ><br><br>
+        <label for="outputImage">Enter Output Image Name (e.g., output.png):</label>
+        <input type="text" id="outputImage" name="outputImage" required><br><br>
+        <input type="submit" value="Encode">
+    </form>
+
+    <h2>Decode Message</h2>
+    <form id="decodeForm" action="/decode" method="post" enctype="multipart/form-data">
+        <label for="encodedImage">Select Encoded Image:</label>
+        <input type="file" id="encodedImage" name="encodedImage" required><br><br>
+        <label for="password">Enter Password:</label>
+        <input type="password" id="decodePassword" name="password" required><br><br>
+        <input type="submit" value="Decode">
+    </form>
+
+    <h3>Decoded Message:</h3>
+    <p id="decodedMessage"></p>
+
+    <script>
+        document.getElementById('encodeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch('/encode', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                document.getElementById('inputImage').value='';
+                document.getElementById('message').value = '';  // Clear message input
+                document.getElementById('password').value = ''; 
+                document.getElementById('outputImage').value=''; // Clear output image
+                document.querySelector('h2.success-message').innerText = 'Message encoded successfully!';
+            } else {
+                alert('Failed to encode message.');  // Handle error case
+            }
+        });
+
+        document.getElementById('decodeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch('/decode', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            document.getElementById('decodedMessage').innerText = result.message;
+        });
+    </script>
+</body>
+</html>
